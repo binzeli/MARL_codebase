@@ -1,3 +1,5 @@
+## note: agent class should have agent.state, agent.reward
+
 class TwoDimWorld:
     def __init__(self, rows, columns, goal, agents, alpha, gamma):
         self.rows = rows
@@ -21,6 +23,8 @@ class TwoDimWorld:
         for i in range(len(self.agents)):
             self.agents[i].state = initialStates
         return initialStates
+        ## note: each agent.state contains all agents' current states
+
     
 
     def getAllAgentActions(self, allAgentStates, episode):
