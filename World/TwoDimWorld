@@ -8,46 +8,61 @@ class TwoDimWorld:
         self.gamma = gamma
         self.stateSpace = [(row, column) for row in range(rows) for column in range(columns)]
         self.actionSpace = ['up', 'down', 'left', 'right', 'stay']
+        self.updateAgentActionSpace() 
 
-    def reset(self):
-        # Resets the environment to the initial state for each agent
-        self.agent_states = [(0, 0) for _ in range(len(self.agents))]
-        return self.agent_states
+    def updateAgentActionSpace(self):
+        # store actionSpace in each agent
+        for agent in self.agents:
+            agent.actionSpace = self.actionSpace 
 
-    def step(self, actions):
-        # Computes the next state for each agent based on their actions
-        next_states = [self.transition(state, action) for state, action in zip(self.agent_states, actions)]
-        rewards = [self.compute_reward(state, action) for state, action in zip(next_states, actions)]
-        dones = [state == self.goal for state in next_states]
-        self.agent_states = next_states
-        return next_states, rewards, dones
-
-    def transition(self, state, action):
-        # State transition logic based on the action
-        row, col = state
-        if action == 'up': row = max(row - 1, 0)
-        elif action == 'down': row = min(row + 1, self.rows - 1)
-        elif action == 'left': col = max(col - 1, 0)
-        elif action == 'right': col = min(col + 1, self.columns - 1)
-        return (row, col)
-
-    def compute_reward(self, state, action):
-        # Computes the reward based on the state and action
-        if state == self.goal:
-            return 100
-        elif action == 'stay':
-            return 0
-        else:
-            return -1
 
     def getAllAgentInitialStates(self):
-        return self.reset()
+        initialStates = [(0, 0) for _ in range(len(self.agents))]
+        for i in range(len(self.agents)):
+            self.agents[i].state = initialStates
+        return initialStates
+    
+
+    def getAllAgentActions(self, allAgentStates, episode):
+        return [self.agents[i].chooseAction(allAgentStates[i]) for i in range(len(self.agents))]
+
+
+    def getAllAgentNextStates(self, allAgentCurrentStates, allAgentActions):
+        return [self.getSingleAgentNextState(state, action) for (state, action) in zip(allAgentCurrentStates, allAgentActions)]
+
+
+
+    def getAllAgentReward(self, allAgentActions, allAgentNextStates):
+        for i in range(len(self.agents)):
+            if allAgentActions[i] == 'stay':
+                self.agents[i].reward = 0
+            elif allAgentNextStates.count(self.goal) == len(self.agents):
+                self.agents[i].reward = 1000
+            elif allAgentNextStates[i] == self.goal:
+                self.agents[i].reward = 100
+            else:
+                self.agents[i].reward = -1
+        return [agent.reward for agent in self.agents]
+
+
+
+
+    def getSingleAgentNextState(self, state, action):
+        row, column = state
+        if action == "up" and column < self.columns - 1:
+            newSingleAgentState = (row, column + 1)
+        elif action == "down" and column > 0:
+            newSingleAgentState = (row, column - 1)
+        elif action == "left" and row > 0:
+            newSingleAgentState = (row - 1, column)
+        elif action == "right" and row < self.rows - 1:
+            newSingleAgentState = (row + 1, column)
+        else:
+            newSingleAgentState = state
+        return newSingleAgentState
+        
 
     def isTerminal(self, states):
         return all(state == self.goal for state in states)
 
-    def getAllAgentActions(self, states, episode):
-        return [agent.choose_action(state) for agent, state in zip(self.agents, states)]
 
-    def getAllAgentRewards(self, actions, next_states):
-        return [self.compute_reward(state, action) for state, action in zip(next_states, actions)]
