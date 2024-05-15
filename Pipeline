@@ -3,35 +3,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 import random
-
+from tqdm import tqdm
 
 
 def learnAllAgents(world, allAgentCurrentStates, allAgentActions, allAgentNextStates, allAgentRewards):
     for i in range(len(world.agents)): 
-        world.agents[i].learn(allAgentCurrentStates, allAgentActions[i], allAgentNextStates, allAgentRewards[i])
-
+        world.agents[i].algorithm.learn(allAgentCurrentStates, allAgentActions[i], allAgentNextStates, allAgentRewards[i], world.alpha, world.gamma)
 
 def train(world, numEpisode):
     totalRewards = {f'agent{i}': [] for i in range(1, len(world.agents) + 1)}
-
     
-    for episode in range(numEpisode):
+    for episode in tqdm(range(numEpisode), desc="Training Progress"):  # Wrap range with tqdm for a progress bar
         episodeRewards = [0] * len(world.agents)
         allAgentCurrentStates = world.getAllAgentInitialStates()
         while not world.isTerminal(allAgentCurrentStates):
-            allAgentActions = world.chooseActions(allAgentCurrentStates, episode)
-            allAgentNextStates = world.transition(allAgentCurrentStates, allAgentActions)
+            allAgentActions = world.getAllAgentActions(allAgentCurrentStates, episode)
+            allAgentNextStates = world.getAllAgentNextStates(allAgentCurrentStates, allAgentActions)
             allAgentRewards = world.getAllAgentRewards(allAgentActions, allAgentNextStates)
-            learnAllAgents(world,allAgentCurrentStates,allAgentActions, allAgentNextStates, allAgentRewards)
+            learnAllAgents(world, allAgentCurrentStates, allAgentActions, allAgentNextStates, allAgentRewards)
             allAgentCurrentStates = allAgentNextStates 
+
             episodeRewards = [episodeRewards[i] + allAgentRewards[i] for i in range(len(world.agents))]
         
-        #plotCurrentPolicy(episode, numEpisode, world)
         for i in range(1, len(world.agents) + 1):
             totalRewards[f'agent{i}'].append(episodeRewards[i-1])
-        
-
+    
     return totalRewards
+
 
 
 
