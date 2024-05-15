@@ -11,6 +11,10 @@ class TwoDimWorld:
         self.stateSpace = [(row, column) for row in range(rows) for column in range(columns)]
         self.actionSpace = ['up', 'down', 'left', 'right', 'stay']
         self.updateAgentActionSpace() 
+        # key dictionary for actions
+        self.actionToIndex = {'up': 0, 'down': 1, 'left': 2, 'right': 3, 'stay': 4}
+        # Inverting the dictionary to index to action
+        self.indexToAction = {v: k for k, v in action_to_index.items()}
 
     def updateAgentActionSpace(self):
         # store actionSpace in each agent
@@ -28,7 +32,7 @@ class TwoDimWorld:
     
 
     def getAllAgentActions(self, allAgentStates, episode):
-        return [self.agents[i].chooseAction(allAgentStates[i]) for i in range(len(self.agents))]
+        return [self.agents[i].algorithm.chooseAction(allAgentStates[i],self.agents[i].agentId, self.agents[i].epsilon) for i in range(len(self.agents))]
 
 
     def getAllAgentNextStates(self, allAgentCurrentStates, allAgentActions):
@@ -36,7 +40,7 @@ class TwoDimWorld:
 
 
 
-    def getAllAgentReward(self, allAgentActions, allAgentNextStates):
+    def getAllAgentRewards(self, allAgentActions, allAgentNextStates):
         for i in range(len(self.agents)):
             if allAgentActions[i] == 'stay':
                 self.agents[i].reward = 0
@@ -53,6 +57,7 @@ class TwoDimWorld:
 
     def getSingleAgentNextState(self, state, action):
         row, column = state
+        action = self.indexToAction[action]
         if action == "up" and column < self.columns - 1:
             newSingleAgentState = (row, column + 1)
         elif action == "down" and column > 0:
@@ -67,6 +72,7 @@ class TwoDimWorld:
         
 
     def isTerminal(self, states):
-        return all(state == self.goal for state in states)
+        # Check if any state in the list matches the goal state
+        return any(state == self.goal for state in states)
 
 
