@@ -71,8 +71,19 @@ class TwoDimWorld:
         return newSingleAgentState
         
 
+
+
     def isTerminal(self, states):
-        # Check if any state in the list matches the goal state
-        return any(state == self.goal for state in states)
+        if any(state == self.goal for state in states):
+            for agent in self.agents:
+                agent.algorithm.clearMemory()
+            return True
+        return False
+    
+
+    def updateAllAgentStates(self, allAgentNextStates):
+        for agent, next_state in zip(self.agents, allAgentNextStates):
+            agent.state = next_state
+        return [agent.state for agent in self.agents]
 
 
