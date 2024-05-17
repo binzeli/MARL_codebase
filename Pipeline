@@ -21,7 +21,7 @@ def train(world, numEpisode):
             allAgentNextStates = world.getAllAgentNextStates(allAgentCurrentStates, allAgentActions)
             allAgentRewards = world.getAllAgentRewards(allAgentActions, allAgentNextStates)
             learnAllAgents(world, allAgentCurrentStates, allAgentActions, allAgentNextStates, allAgentRewards)
-            allAgentCurrentStates = allAgentNextStates 
+            allAgentCurrentStates = world.updateAllAgentStates(allAgentNextStates)
 
             episodeRewards = [episodeRewards[i] + allAgentRewards[i] for i in range(len(world.agents))]
         
