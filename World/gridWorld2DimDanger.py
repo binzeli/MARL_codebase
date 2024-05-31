@@ -31,6 +31,15 @@ class TwoDimWorld:
             return True
         else:
             return False
+        
+    # Define the dangerous positions and the dimensions of the grid
+    dangerousPositions = [(1, 1), (1, 3)]
+    rows = 4
+    columns = 4
+
+    # Define a test state and new state
+    state = (1, 1)
+    newState = (1, 2)
     
     # Random slip function when moving agent to a dangerous position
     def dangerousSlipMovement(self, state, newState):
@@ -51,6 +60,7 @@ class TwoDimWorld:
     def transition(self, state, action):
         
         x, y = state
+        action = self.indexToAction[action]
         if action == 'up':
             newState = (x, y+1)
         elif action == 'down':
@@ -65,7 +75,7 @@ class TwoDimWorld:
             return state # invalid action, remain in the same place
 
         if self.isValidState(newState):   # checks if the state is valid
-            return self.dangerousSlipMovement(self, state, newState)
+            return self.dangerousSlipMovement(state, newState)
         return state  # Remain in the same place if move would go out of bounds
     
     # Reward function
@@ -75,26 +85,29 @@ class TwoDimWorld:
         elif state in self.dangerousPositions:
             return -10
         else:
-            return 0
+            return -1
     
     # getSingleAgentNextState function
     def getSingleAgentNextState(self, state, action):
         singleAgentNextState = self.transition(state, action)
         return singleAgentNextState
     
-    # getAllAgentReward function
-    def getAllAgentReward(self, allAgentActions, allAgentNextStates):
-        # allAgentActions is the list of actions for all the agents
-        # allAgentNextState is the next state for each agent
-        # this function determines how the reward is given to each agent (there can be multiple)
-        # can decide how to use the parameters given as well as use previous functions
+    # getAllAgentRewards function
+    def getAllAgentRewards(self, allAgentActions, allAgentNextStates):
+        for i in range(len(self.agents)):
+            if allAgentActions[i] == 'stay':
+                self.agents[i].reward = 0
+            elif allAgentNextStates.count(self.goal) == len(self.agents):
+                self.agents[i].reward = 100
+            elif allAgentNextStates[i] == self.goal:
+                self.agents[i].reward = 20
+            elif allAgentNextStates[i] in self.dangerousPositions:
+                self.agents[i].reward = -10
+            else:
+                self.agents[i].reward = -1
+        return [agent.reward for agent in self.agents]
 
-        # create a list to store all the rewards
-        # use reward function to return a reward for each agent
 
-        # Calculate and return rewards for all agents using list comprehension
-        # list comprehension - create new list of rewards based on existing
-        return [self.reward(nextState, self.goalPosition, self.dangerousPositions) for nextState in allAgentNextStates]
     
 ############################################################################################################
 
@@ -112,8 +125,6 @@ class TwoDimWorld:
         return initialStates
         ## note: each agent.state contains all agents' current states
 
-    
-
     def getAllAgentActions(self, allAgentStates, episode):
         return [self.agents[i].algorithm.chooseAction(allAgentStates,self.agents[i].agentId, episode) for i in range(len(self.agents))]
 
@@ -121,38 +132,6 @@ class TwoDimWorld:
     def getAllAgentNextStates(self, allAgentCurrentStates, allAgentActions):
         return [self.getSingleAgentNextState(state, action) for (state, action) in zip(allAgentCurrentStates, allAgentActions)]
 
-
-
-    def getAllAgentRewards(self, allAgentActions, allAgentNextStates):
-        for i in range(len(self.agents)):
-            if allAgentActions[i] == 'stay':
-                self.agents[i].reward = 0
-            elif allAgentNextStates.count(self.goal) == len(self.agents):
-                self.agents[i].reward = 100
-            elif allAgentNextStates[i] == self.goal:
-                self.agents[i].reward = 20
-            else:
-                self.agents[i].reward = -1
-        return [agent.reward for agent in self.agents]
-
-
-
-
-    def getSingleAgentNextState(self, state, action):
-        row, column = state
-        action = self.indexToAction[action]
-        if action == "up" and column < self.columns - 1:
-            newSingleAgentState = (row, column + 1)
-        elif action == "down" and column > 0:
-            newSingleAgentState = (row, column - 1)
-        elif action == "left" and row > 0:
-            newSingleAgentState = (row - 1, column)
-        elif action == "right" and row < self.rows - 1:
-            newSingleAgentState = (row + 1, column)
-        else:
-            newSingleAgentState = state
-        return newSingleAgentState
-        
 
     def isTerminal(self, states):
         if any([state == self.goal for state in states]):
