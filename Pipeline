@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 def learnAllAgents(world, allAgentCurrentStates, allAgentActions, allAgentNextStates, allAgentRewards):
     for i in range(len(world.agents)): 
-        world.agents[i].algorithm.learn(allAgentCurrentStates, allAgentActions[i], allAgentNextStates, allAgentRewards[i], world.alpha, world.gamma)
+        world.agents[i].algorithm.learn(allAgentCurrentStates, allAgentActions[i], allAgentNextStates, allAgentRewards[i])
 
 def train(world, numEpisode):
     totalRewards = {f'agent{i}': [] for i in range(1, len(world.agents) + 1)}
@@ -39,10 +39,9 @@ def test(world):
     allAgentTrajectories = [allAgentCurrentStates]
     while not world.isTerminal(allAgentCurrentStates):
         allAgentActions = world.chooseMaxRewardActions(allAgentCurrentStates)
-        # print(allAgentActions)
-        allAgentNextStates = world.getAllAgentNextStates(allAgentCurrentStates, allAgentActions)
-        # print(allAgentNextStates)
+        allAgentNextStates = world.transition(allAgentCurrentStates, allAgentActions)
         allAgentRewards = world.getAllAgentRewards(allAgentActions, allAgentNextStates)
+        learnAllAgents(world, allAgentCurrentStates,allAgentActions, allAgentNextStates, allAgentRewards)
         allAgentCurrentStates = allAgentNextStates 
 
         rewards = [rewards[i] + allAgentRewards[i] for i in range(len(world.agents))]
@@ -82,5 +81,4 @@ def plotCurrentPolicy (episode, numEpisode, world):
     if episode == 10 or episode == numEpisode-1:
             testRewards, allAgentTrajectories = test(world)
             plotAgentTrajectories(allAgentTrajectories, world.goal)
-
 
