@@ -32,14 +32,8 @@ class TwoDimWorld:
         else:
             return False
         
-    # Define the dangerous positions and the dimensions of the grid
-    dangerousPositions = [(1, 1), (1, 3)]
-    rows = 4
-    columns = 4
 
-    # Define a test state and new state
-    state = (1, 1)
-    newState = (1, 2)
+
     
     # Random slip function when moving agent to a dangerous position
     def dangerousSlipMovement(self, state, newState):
@@ -78,14 +72,6 @@ class TwoDimWorld:
             return self.dangerousSlipMovement(state, newState)
         return state  # Remain in the same place if move would go out of bounds
     
-    # Reward function
-    def reward(self, state, goalPosition):
-        if state == goalPosition:
-            return 100
-        elif state in self.dangerousPositions:
-            return -10
-        else:
-            return -1
     
     # getSingleAgentNextState function
     def getSingleAgentNextState(self, state, action):
@@ -98,9 +84,9 @@ class TwoDimWorld:
             if allAgentActions[i] == 'stay':
                 self.agents[i].reward = 0
             elif allAgentNextStates.count(self.goal) == len(self.agents):
-                self.agents[i].reward = 100
+                self.agents[i].reward = 200
             elif allAgentNextStates[i] == self.goal:
-                self.agents[i].reward = 20
+                self.agents[i].reward = 50
             elif allAgentNextStates[i] in self.dangerousPositions:
                 self.agents[i].reward = -10
             else:
@@ -145,3 +131,7 @@ class TwoDimWorld:
         for agent, next_state in zip(self.agents, allAgentNextStates):
             agent.state = next_state
         return [agent.state for agent in self.agents]
+    
+
+    def chooseMaxRewardActions(self, allAgentCurrentStates):
+        return [self.agents[i].algorithm.chooseBestAction(allAgentCurrentStates,self.agents[i].agentId) for i in range(len(self.agents))]
