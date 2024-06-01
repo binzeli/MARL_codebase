@@ -83,6 +83,12 @@ class ActorCriticAlgorithm():
         self.actionProb = actionProb
         return action
     
+    def chooseBestAction(self, state, agentId):
+        state = torch.tensor(state, requires_grad=True, dtype=torch.float).reshape(-1)
+        self.policy = self.getPolicy(state)
+        action = torch.argmax(self.policy, dim=-1, keepdim=True)
+        return action.item()
+    
 
     def getAdvantage(self, currentValue,nextValue,reward):
         return reward + self.gamma * nextValue - currentValue
@@ -107,9 +113,9 @@ class ActorCriticAlgorithm():
         advantage = self.getAdvantage(currentValue,nextValue,reward)
         self.updateActor(advantage)
         self.updateCritic(reward, currentValue)
-        
-
     
+
+
     def learn(self, allAgentCurrentStates, action, allAgentNextStates, reward):
         numAgent = len(allAgentCurrentStates)
         allAgentCurrentStates = torch.tensor(allAgentCurrentStates, requires_grad=True, dtype=torch.float).reshape(1, numAgent*2)
