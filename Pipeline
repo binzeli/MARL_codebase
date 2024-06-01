@@ -4,7 +4,7 @@ import numpy as np
 import itertools
 import random
 from tqdm import tqdm
-
+import os
 
 def learnAllAgents(world, allAgentCurrentStates, allAgentActions, allAgentNextStates, allAgentRewards):
     for i in range(len(world.agents)): 
@@ -38,10 +38,11 @@ def test(world):
     allAgentCurrentStates = world.getAllAgentInitialStates()
     allAgentTrajectories = [allAgentCurrentStates]
     while not world.isTerminal(allAgentCurrentStates):
+        print(allAgentCurrentStates)
         allAgentActions = world.chooseMaxRewardActions(allAgentCurrentStates)
-        allAgentNextStates = world.transition(allAgentCurrentStates, allAgentActions)
+        print(allAgentActions)
+        allAgentNextStates = world.getAllAgentNextStates(allAgentCurrentStates, allAgentActions)
         allAgentRewards = world.getAllAgentRewards(allAgentActions, allAgentNextStates)
-        learnAllAgents(world, allAgentCurrentStates,allAgentActions, allAgentNextStates, allAgentRewards)
         allAgentCurrentStates = allAgentNextStates 
 
         rewards = [rewards[i] + allAgentRewards[i] for i in range(len(world.agents))]
@@ -76,9 +77,47 @@ def plotAgentTrajectories(trajectory, goal):
     plt.show()
 
 
+def plotPolicyFrame(trajectory, goal, obstacles):
+    os.makedirs('frames', exist_ok=True)
+# Generate each frame
+    for i in range(len(trajectory)):
+        fig, ax = plt.subplots()
+        ax.plot([p[0][0] for p in trajectory[:i+1]], [p[0][1] for p in trajectory[:i+1]], 'bo-', label='Agent 1')
+        ax.plot([p[1][0] for p in trajectory[:i+1]], [p[1][1] for p in trajectory[:i+1]], 'ro-', label='Agent 2')
+
+    # Mark the goal state
+        ax.plot(goal[0], goal[1], 'go', markersize=10, label='Goal State')
+
+    # Mark the dangerous states
+        for idx, dangerous in enumerate(obstacles):
+            ax.plot(dangerous[0], dangerous[1], 'rx', markersize=10, label=f'Dangerous State {idx + 1}')
+
+    # Set up the grid, limits, and aspect of the axes
+        ax.set_xticks(range(-1, 6))
+        ax.set_yticks(range(-1, 6))
+        ax.grid(True)
+        ax.set_xlim(-1, 5)
+        ax.set_ylim(-1, 5)
+        ax.set_aspect('equal')
+
+    # Add legend in the first frame
+        if i == 0:
+            ax.legend()
+
+    # Save frame
+        plt.savefig(f'frames/frame_{i:04d}.png')
+        plt.close()
+
+
+
+
 
 def plotCurrentPolicy (episode, numEpisode, world):
     if episode == 10 or episode == numEpisode-1:
             testRewards, allAgentTrajectories = test(world)
             plotAgentTrajectories(allAgentTrajectories, world.goal)
+
+
+
+
 
