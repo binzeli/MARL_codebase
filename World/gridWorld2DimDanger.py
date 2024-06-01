@@ -135,3 +135,5 @@ class TwoDimWorld:
 
     def chooseMaxRewardActions(self, allAgentCurrentStates):
         return [self.agents[i].algorithm.chooseBestAction(allAgentCurrentStates,self.agents[i].agentId) for i in range(len(self.agents))]
+
+
