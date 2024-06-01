@@ -5,7 +5,7 @@ import itertools
 import random
 import torch
 
-import TwoDimWorld as env
+import gridWorld2DimDanger as env
 import algorithm as algorithm
 import pipeline as pipeline
 
@@ -22,7 +22,7 @@ def main():
 
     
 
-    numEpisode = 200
+    numEpisode = 300
     totalRewards = pipeline.train(world, numEpisode)
 
     # plot rewards
@@ -37,7 +37,13 @@ def main():
         plt.title(f'Reward for {agentKey}')
         plt.show()
 
-    torch.autograd.set_detect_anomaly(True)
+
+    rewards, allAgentTrajectories = pipeline.test(world)
+    print(f"Total rewards: {rewards}")
+    print(f"Trajectories: {allAgentTrajectories}")
+
+    pipeline.plotPolicyFrame(allAgentTrajectories, world.goal, world.dangerousPositions)
+
     
 
 if __name__ == "__main__":
