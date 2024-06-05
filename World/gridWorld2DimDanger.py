@@ -23,17 +23,12 @@ class TwoDimWorld:
         # Inverting the dictionary to index to action
         self.indexToAction = {v: k for k, v in self.actionToIndex.items()}
 
-############################################################################################################
-
     # Check if new state is within grid boundaries
     def isValidState(self, newState):
         if newState in self.stateSpace:
             return True
         else:
             return False
-        
-
-
     
     # Random slip function when moving agent to a dangerous position
     def dangerousSlipMovement(self, state, newState):
@@ -50,7 +45,7 @@ class TwoDimWorld:
         else:
             return newState     # If not a dangerous position, return the intended new state
         
-    # Transition function
+
     def transition(self, state, action):
         
         x, y = state
@@ -72,30 +67,34 @@ class TwoDimWorld:
             return self.dangerousSlipMovement(state, newState)
         return state  # Remain in the same place if move would go out of bounds
     
+
+    def reward(self, state, goalPosition):
+        if state == goalPosition:
+            return 100
+        elif state in self.dangerousPositions:
+            return -10
+        else:
+            return -1
     
-    # getSingleAgentNextState function
+
     def getSingleAgentNextState(self, state, action):
         singleAgentNextState = self.transition(state, action)
         return singleAgentNextState
     
-    # getAllAgentRewards function
+
     def getAllAgentRewards(self, allAgentActions, allAgentNextStates):
         for i in range(len(self.agents)):
             if allAgentActions[i] == 'stay':
                 self.agents[i].reward = 0
             elif allAgentNextStates.count(self.goal) == len(self.agents):
-                self.agents[i].reward = 200
+                self.agents[i].reward = 100
             elif allAgentNextStates[i] == self.goal:
-                self.agents[i].reward = 50
+                self.agents[i].reward = 20
             elif allAgentNextStates[i] in self.dangerousPositions:
                 self.agents[i].reward = -10
             else:
                 self.agents[i].reward = -1
         return [agent.reward for agent in self.agents]
-
-
-    
-############################################################################################################
 
 
     def updateAgentActionSpace(self):
@@ -110,6 +109,7 @@ class TwoDimWorld:
             self.agents[i].state = initialStates
         return initialStates
         ## note: each agent.state contains all agents' current states
+
 
     def getAllAgentActions(self, allAgentStates, episode):
         return [self.agents[i].algorithm.chooseAction(allAgentStates,self.agents[i].agentId, episode) for i in range(len(self.agents))]
@@ -131,9 +131,5 @@ class TwoDimWorld:
         for agent, next_state in zip(self.agents, allAgentNextStates):
             agent.state = next_state
         return [agent.state for agent in self.agents]
+
     
-
-    def chooseMaxRewardActions(self, allAgentCurrentStates):
-        return [self.agents[i].algorithm.chooseBestAction(allAgentCurrentStates,self.agents[i].agentId) for i in range(len(self.agents))]
-
-
